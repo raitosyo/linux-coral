@@ -1150,6 +1150,7 @@ static int bd718xx_probe(struct platform_device *pdev)
 	bool use_snvs;
 	const struct bd718xx_regulator_data *reg_data;
 	unsigned int num_reg_data;
+	enum rohm_chip_type chip = platform_get_device_id(pdev)->driver_data;
 
 	mfd = dev_get_drvdata(pdev->dev.parent);
 	if (!mfd) {
@@ -1158,7 +1159,7 @@ static int bd718xx_probe(struct platform_device *pdev)
 		goto err;
 	}
 
-	switch (mfd->chip.chip_type) {
+	switch (chip) {
 	case ROHM_CHIP_TYPE_BD71837:
 		reg_data = bd71837_regulators;
 		num_reg_data = ARRAY_SIZE(bd71837_regulators);
@@ -1275,11 +1276,19 @@ err:
 	return err;
 }
 
+static const struct platform_device_id bd718x7_pmic_id[] = {
+	{ "bd71837-pmic", ROHM_CHIP_TYPE_BD71837 },
+	{ "bd71847-pmic", ROHM_CHIP_TYPE_BD71847 },
+	{ },
+};
+MODULE_DEVICE_TABLE(platform, bd718x7_pmic_id);
+
 static struct platform_driver bd718xx_regulator = {
 	.driver = {
 		.name = "bd718xx-pmic",
 	},
 	.probe = bd718xx_probe,
+	.id_table = bd718x7_pmic_id,
 };
 
 module_platform_driver(bd718xx_regulator);
