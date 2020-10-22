@@ -63,6 +63,11 @@
 	cpu-supply = <&buck2>;
 };
 
+&{/busfreq} {
+	/* Disable busfreq, to avoid 1st Linux busfreq crash other inmates */
+	status = "disabled";
+};
+
 &cpu_thermal {
 	trips {
 		cpu_alert0: trip0 {
