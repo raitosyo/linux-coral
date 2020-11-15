@@ -1550,14 +1550,13 @@ static void imx6_pcie_init_phy(struct imx6_pcie *imx6_pcie)
 
 		break;
 	case IMX8MQ:
-		/*
-		 * TODO: Currently this code assumes external
-		 * oscillator is being used
-		 */
-		regmap_update_bits(imx6_pcie->iomuxc_gpr,
-				   imx6_pcie_grp_offset(imx6_pcie),
-				   IMX8MQ_GPR_PCIE_REF_USE_PAD,
-				   IMX8MQ_GPR_PCIE_REF_USE_PAD);
+		if (imx6_pcie->ext_osc) {
+			/* Use the external oscillator as REF clock */
+			regmap_update_bits(imx6_pcie->iomuxc_gpr,
+					   imx6_pcie_grp_offset(imx6_pcie),
+					   IMX8MQ_GPR_PCIE_REF_USE_PAD,
+					   IMX8MQ_GPR_PCIE_REF_USE_PAD);
+		}
 		break;
 	case IMX8MP:
 		dev_info(imx6_pcie->pci->dev, "%s REF_CLK is used!.\n",
