@@ -314,6 +314,12 @@ struct imx6_pcie {
 #define IMX8MM_GPR_PCIE_POWER_OFF		BIT(17)
 #define IMX8MM_GPR_PCIE_SSC_EN			BIT(16)
 
+#define IMX8MQ_ANA_PLLOUT_MONITOR_CFG_REG	0x74
+#define IMX8MQ_ANA_PLLOUT_MONITOR_CLK_SEL_MASK	GENMASK(3, 0)
+#define IMX8MQ_ANA_PLLOUT_MONITOR_CKE		BIT(4)
+#define IMX8MQ_ANA_SCCG_PLLOUT_DIV_CFG_REG	0x7C
+#define IMX8MQ_ANA_SCCG_SYSPLLL1_DIV_MASK	GENMASK(2, 0)
+
 static void imx6_pcie_ltssm_disable(struct device *dev);
 
 /*
@@ -1556,7 +1562,37 @@ static void imx6_pcie_init_phy(struct imx6_pcie *imx6_pcie)
 					   imx6_pcie_grp_offset(imx6_pcie),
 					   IMX8MQ_GPR_PCIE_REF_USE_PAD,
 					   IMX8MQ_GPR_PCIE_REF_USE_PAD);
+		} else {
+			/*
+			 * Use the internal PLL as REF clock and also
+			 * provide a clock to the device.
+			 */
+			struct regmap *anatop =
+				syscon_regmap_lookup_by_compatible("fsl,imx8mq-anatop");
+
+			if (IS_ERR(anatop)) {
+				dev_err(imx6_pcie->pci->dev,
+					"Couldn't configure the internal PLL as REF clock\n");
+				break;
+			}
+
+			/* Select SYSTEM_PLL1_CLK as the clock source */
+			regmap_update_bits(anatop, IMX8MQ_ANA_PLLOUT_MONITOR_CFG_REG,
+					   IMX8MQ_ANA_PLLOUT_MONITOR_CLK_SEL_MASK, 0xb);
+
+			/*
+			 * SYSTEM_PLL1_CLK is 800 MHz, so divided by 8
+			 * for generating 100 MHz as output.
+			 */
+			regmap_update_bits(anatop, IMX8MQ_ANA_SCCG_PLLOUT_DIV_CFG_REG,
+					   IMX8MQ_ANA_SCCG_SYSPLLL1_DIV_MASK, 0x7);
+
+			/* Enable CLK2_P/N clock to provide it to the device */
+			regmap_update_bits(anatop, IMX8MQ_ANA_PLLOUT_MONITOR_CFG_REG,
+					   IMX8MQ_ANA_PLLOUT_MONITOR_CKE,
+					   IMX8MQ_ANA_PLLOUT_MONITOR_CKE);
 		}
+
 		break;
 	case IMX8MP:
 		dev_info(imx6_pcie->pci->dev, "%s REF_CLK is used!.\n",
