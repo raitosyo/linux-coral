@@ -308,6 +308,27 @@
 	status = "okay";
 };
 
+&ecspi1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_ecspi1 &pinctrl_ecspi1_cs>;
+	cs-gpios = <&gpio5 9 GPIO_ACTIVE_HIGH>,
+		   <&gpio3 2 GPIO_ACTIVE_HIGH>;
+	num-cs = <2>;
+	status = "okay";
+
+	spidev@0 {
+		compatible = "rohm,dh2228fv";
+		spi-max-frequency = <20000000>;
+		reg = <0>;
+	};
+
+	spidev@1 {
+		compatible = "rohm,dh2228fv";
+		spi-max-frequency = <20000000>;
+		reg = <1>;
+	};
+};
+
 &fec1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_fec1>;
@@ -402,6 +423,21 @@
 		fsl,pins = <
 			MX8MQ_IOMUXC_I2C4_SDA_PCIE2_CLKREQ_B		0x76
 			MX8MQ_IOMUXC_NAND_WP_B_GPIO3_IO18		0x19
+		>;
+	};
+
+	pinctrl_ecspi1: ecspi1grp {
+		fsl,pins = <
+			MX8MQ_IOMUXC_ECSPI1_SCLK_ECSPI1_SCLK		0x82
+			MX8MQ_IOMUXC_ECSPI1_MOSI_ECSPI1_MOSI		0x82
+			MX8MQ_IOMUXC_ECSPI1_MISO_ECSPI1_MISO		0x82
+		>;
+	};
+
+	pinctrl_ecspi1_cs: ecspi1_cs_grp {
+		fsl,pins = <
+			MX8MQ_IOMUXC_ECSPI1_SS0_GPIO5_IO9		0x82
+			MX8MQ_IOMUXC_NAND_CE1_B_GPIO3_IO2		0x82
 		>;
 	};
 
